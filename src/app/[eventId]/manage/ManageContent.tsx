@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { verifyAdminCode, getEventWithResponses, TimeSlot } from '@/lib/actions';
+import { verifyAdminCode, getEventWithResponses, updateEvent, deleteResponse, TimeSlot } from '@/lib/actions';
 
 interface ManageContentProps {
   eventId: string;
@@ -11,6 +11,7 @@ interface ManageContentProps {
 interface ResponseData {
   name: string;
   availability: Record<string, TimeSlot[]>;
+  plus_one: string | null;
 }
 
 interface EventData {
@@ -29,6 +30,18 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
   const [event, setEvent] = useState<EventData | null>(null);
   const [responses, setResponses] = useState<ResponseData[]>([]);
   const [copied, setCopied] = useState(false);
+
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadData = useCallback(async () => {
     const data = await getEventWithResponses(eventId);
@@ -156,6 +169,73 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
     }
   };
 
+  const startEditing = () => {
+    if (!event) return;
+    setEditTitle(event.title);
+    setEditLocation(event.location || '');
+    setEditDescription(event.description || '');
+    setSaveError('');
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setSaveError('');
+  };
+
+  const handleSaveEvent = async () => {
+    if (!editTitle.trim()) {
+      setSaveError('Title is required');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError('');
+
+    try {
+      const result = await updateEvent({
+        eventId,
+        adminCode,
+        title: editTitle.trim(),
+        location: editLocation.trim() || null,
+        description: editDescription.trim() || null,
+      });
+
+      if (result.success) {
+        setIsEditing(false);
+        loadData();
+      } else {
+        setSaveError(result.error || 'Failed to save');
+      }
+    } catch {
+      setSaveError('Failed to save changes');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteResponse = async (name: string) => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteResponse({
+        eventId,
+        adminCode,
+        responseName: name,
+      });
+
+      if (result.success) {
+        setDeleteConfirm(null);
+        loadData();
+      } else {
+        alert(result.error || 'Failed to delete');
+      }
+    } catch {
+      alert('Failed to delete response');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Login screen
   if (!isAuthenticated) {
     return (
@@ -255,18 +335,107 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
       {/* Header */}
       <div className="text-center mb-8">
         <span className="text-4xl mb-4 block">📊</span>
-        <h1 className="text-3xl font-display font-bold text-[var(--warm-brown)] mb-2">
-          {event.title}
-        </h1>
-        {event.location && (
-          <p className="text-[var(--warm-gray)] flex items-center justify-center gap-2">
-            <span>📍</span> {event.location}
-          </p>
+
+        {isEditing ? (
+          <div className="card-elevated p-6 max-w-md mx-auto text-left space-y-4">
+            <h2 className="text-lg font-display font-semibold text-[var(--warm-brown)] text-center mb-4">
+              Edit Event Details
+            </h2>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--warm-brown)] mb-1">
+                Event Name *
+              </label>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="input-warm"
+                placeholder="Event name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--warm-brown)] mb-1">
+                Location
+              </label>
+              <input
+                type="text"
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                className="input-warm"
+                placeholder="Where is this happening?"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--warm-brown)] mb-1">
+                Description
+              </label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                className="input-warm min-h-[80px] resize-none"
+                placeholder="Any additional details..."
+              />
+            </div>
+
+            {saveError && (
+              <div className="bg-red-50 text-red-600 text-sm text-center p-3 rounded-xl">
+                {saveError}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={cancelEditing}
+                disabled={isSaving}
+                className="flex-1 btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEvent}
+                disabled={isSaving}
+                className="flex-1 btn-primary"
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-3xl font-display font-bold text-[var(--warm-brown)] mb-2">
+              {event.title}
+            </h1>
+            {event.location && (
+              <p className="text-[var(--warm-gray)] flex items-center justify-center gap-2">
+                <span>📍</span> {event.location}
+              </p>
+            )}
+            {event.description && (
+              <p className="text-[var(--warm-gray-light)] text-sm mt-2 max-w-md mx-auto">
+                {event.description}
+              </p>
+            )}
+            <button
+              onClick={startEditing}
+              className="mt-3 text-sm text-[var(--coral)] hover:underline font-medium"
+            >
+              Edit event details
+            </button>
+          </>
         )}
+
         <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-[var(--peach-light)] border border-[var(--peach)]">
           <span className="text-lg">👥</span>
           <span className="font-semibold text-[var(--warm-brown)]">
-            {responses.length} response{responses.length !== 1 ? 's' : ''}
+            {responses.length + responses.filter(r => r.plus_one).length} guest{(responses.length + responses.filter(r => r.plus_one).length) !== 1 ? 's' : ''}
+            {responses.filter(r => r.plus_one).length > 0 && (
+              <span className="text-[var(--warm-gray)] font-normal ml-1">
+                ({responses.length} + {responses.filter(r => r.plus_one).length} +1s)
+              </span>
+            )}
           </span>
         </div>
       </div>
@@ -311,6 +480,9 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                         </div>
                       </th>
                     ))}
+                    <th className="px-4 py-4 text-center text-sm font-medium text-[var(--warm-gray)] w-16">
+
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,11 +495,18 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                     >
                       <td className="px-4 py-4 text-sm font-medium text-[var(--warm-brown)] sticky left-0 bg-inherit z-10">
                         {r.name}
+                        {r.plus_one && (
+                          <span className="ml-1 text-xs text-[var(--warm-gray)]">+1 {r.plus_one}</span>
+                        )}
                       </td>
                       {sortedDates.map((date) => {
                         const slots = r.availability[date] || [];
+                        const isBestDate = dateCounts[date] === maxCount && maxCount > 0;
                         return (
-                          <td key={date} className="px-4 py-4 text-center">
+                          <td
+                            key={date}
+                            className={`px-4 py-4 text-center ${isBestDate ? 'bg-[var(--sage)]/10' : ''}`}
+                          >
                             {slots.length > 0 ? (
                               <span className="text-xl" title={slots.map(getSlotLabel).join(', ')}>
                                 {slots.map((s) => getSlotEmoji(s)).join('')}
@@ -338,6 +517,36 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                           </td>
                         );
                       })}
+                      <td className="px-4 py-4 text-center">
+                        {deleteConfirm === r.name ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleDeleteResponse(r.name)}
+                              disabled={isDeleting}
+                              className="text-xs px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+                            >
+                              {isDeleting ? '...' : 'Yes'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(null)}
+                              disabled={isDeleting}
+                              className="text-xs px-2 py-1 rounded bg-[var(--cream-dark)] text-[var(--warm-gray)] hover:bg-[var(--cream)]"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirm(r.name)}
+                            className="text-[var(--warm-gray-light)] hover:text-red-500 transition-colors"
+                            title="Delete response"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -346,18 +555,22 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                     <td className="px-4 py-4 text-sm font-bold text-[var(--warm-brown)] sticky left-0 bg-[var(--cream-dark)] z-10">
                       Total
                     </td>
-                    {sortedDates.map((date) => (
-                      <td
-                        key={date}
-                        className={`px-4 py-4 text-center text-sm font-bold ${
-                          dateCounts[date] === maxCount && maxCount > 0
-                            ? 'text-[var(--sage-dark)]'
-                            : 'text-[var(--warm-gray)]'
-                        }`}
-                      >
-                        {dateCounts[date]}/{responses.length}
-                      </td>
-                    ))}
+                    {sortedDates.map((date) => {
+                      const isBestDate = dateCounts[date] === maxCount && maxCount > 0;
+                      return (
+                        <td
+                          key={date}
+                          className={`px-4 py-4 text-center text-sm font-bold ${
+                            isBestDate
+                              ? 'text-[var(--sage-dark)] bg-[var(--sage)]/20'
+                              : 'text-[var(--warm-gray)]'
+                          }`}
+                        >
+                          {dateCounts[date]}/{responses.length}
+                        </td>
+                      );
+                    })}
+                    <td className="px-4 py-4"></td>
                   </tr>
                 </tfoot>
               </table>
@@ -392,9 +605,10 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
       )}
 
       {/* Footer */}
-      <p className="text-center text-xs text-[var(--warm-gray-light)]">
-        Auto-refreshes every 10 seconds
-      </p>
+      <div className="text-center text-xs text-[var(--warm-gray-light)] space-y-1">
+        <p>Auto-refreshes every 10 seconds</p>
+        <p>Built with &lt;3 by Jacky and Christine</p>
+      </div>
     </div>
   );
 }

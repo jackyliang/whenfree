@@ -2,9 +2,20 @@ import { getEvent } from '@/lib/actions';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import CopyButton from './CopyButton';
+import ShareSection from '@/components/ShareSection';
+import { Metadata } from 'next';
 
 interface Props {
   params: Promise<{ eventId: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { eventId } = await params;
+  const event = await getEvent(eventId);
+
+  return {
+    title: event ? `${event.title} | WhenFree` : 'Event Not Found | WhenFree',
+  };
 }
 
 export default async function CreatedPage({ params }: Props) {
@@ -58,20 +69,11 @@ export default async function CreatedPage({ params }: Props) {
           </div>
 
           {/* Share link */}
-          <div className="card-elevated p-6">
-            <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-3">
-              🔗 Share this with friends
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={shareUrl}
-                className="flex-1 px-4 py-3 rounded-xl border-2 border-[var(--cream-dark)] bg-[var(--cream)] text-[var(--warm-brown)] font-mono text-sm"
-              />
-              <CopyButton text={shareUrl} />
-            </div>
-          </div>
+          <ShareSection
+            shareUrl={shareUrl}
+            eventTitle={event.title}
+            eventLocation={event.location}
+          />
 
           {/* Admin link */}
           <div className="card-elevated p-6">
@@ -119,7 +121,7 @@ export default async function CreatedPage({ params }: Props) {
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--warm-gray-light)] mt-12">
-          Made with 💛 by WhenFree
+          Built with &lt;3 by Jacky and Christine
         </p>
       </div>
     </main>

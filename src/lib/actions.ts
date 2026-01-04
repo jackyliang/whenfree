@@ -32,6 +32,7 @@ export interface Response {
   event_id: string;
   name: string;
   availability: Record<string, TimeSlot[]>;
+  plus_one: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -117,6 +118,7 @@ export async function submitResponse(data: {
   eventId: string;
   name: string;
   availability: Record<string, TimeSlot[]>;
+  plusOne?: string;
 }): Promise<void> {
   const ip = await getClientIP();
   const rateCheck = checkRateLimit(`submit:${ip}`, RATE_LIMITS.submitResponse);
@@ -126,11 +128,12 @@ export async function submitResponse(data: {
   }
 
   await sql`
-    INSERT INTO responses (event_id, name, availability)
-    VALUES (${data.eventId}, ${data.name}, ${JSON.stringify(data.availability)})
+    INSERT INTO responses (event_id, name, availability, plus_one)
+    VALUES (${data.eventId}, ${data.name}, ${JSON.stringify(data.availability)}, ${data.plusOne || null})
     ON CONFLICT (event_id, name)
     DO UPDATE SET
       availability = ${JSON.stringify(data.availability)},
+      plus_one = ${data.plusOne || null},
       updated_at = NOW()
   `;
 }
@@ -145,6 +148,7 @@ export async function getResponses(eventId: string): Promise<Response[]> {
     event_id: row.event_id,
     name: row.name,
     availability: parseJsonField<Record<string, TimeSlot[]>>(row.availability),
+    plus_one: row.plus_one || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   }));
@@ -159,4 +163,88 @@ export async function getEventWithResponses(eventId: string): Promise<{
 
   const responses = await getResponses(eventId);
   return { event, responses };
+}
+
+export async function updateEvent(data: {
+  eventId: string;
+  adminCode: string;
+  title?: string;
+  location?: string | null;
+  description?: string | null;
+}): Promise<{ success: boolean; error?: string }> {
+  const ip = await getClientIP();
+  const rateCheck = checkRateLimit(`update:${ip}`, RATE_LIMITS.createEvent);
+
+  if (!rateCheck.success) {
+    return { success: false, error: 'Too many requests. Please try again later.' };
+  }
+
+  // Verify admin code
+  const isValid = await verifyAdminCode(data.eventId, data.adminCode);
+  if (!isValid) {
+    return { success: false, error: 'Invalid admin code' };
+  }
+
+  const updates: string[] = [];
+  const values: (string | null)[] = [];
+
+  if (data.title !== undefined) {
+    updates.push('title');
+    values.push(data.title);
+  }
+  if (data.location !== undefined) {
+    updates.push('location');
+    values.push(data.location || null);
+  }
+  if (data.description !== undefined) {
+    updates.push('description');
+    values.push(data.description || null);
+  }
+
+  if (updates.length === 0) {
+    return { success: true };
+  }
+
+  // Build dynamic update query
+  if (data.title !== undefined && data.location !== undefined && data.description !== undefined) {
+    await sql`
+      UPDATE events
+      SET title = ${data.title}, location = ${data.location || null}, description = ${data.description || null}
+      WHERE id = ${data.eventId}
+    `;
+  } else if (data.title !== undefined) {
+    await sql`UPDATE events SET title = ${data.title} WHERE id = ${data.eventId}`;
+  } else if (data.location !== undefined) {
+    await sql`UPDATE events SET location = ${data.location || null} WHERE id = ${data.eventId}`;
+  } else if (data.description !== undefined) {
+    await sql`UPDATE events SET description = ${data.description || null} WHERE id = ${data.eventId}`;
+  }
+
+  return { success: true };
+}
+
+export async function deleteResponse(data: {
+  eventId: string;
+  adminCode: string;
+  responseName: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const ip = await getClientIP();
+  const rateCheck = checkRateLimit(`delete:${ip}`, RATE_LIMITS.submitResponse);
+
+  if (!rateCheck.success) {
+    return { success: false, error: 'Too many requests. Please try again later.' };
+  }
+
+  // Verify admin code
+  const isValid = await verifyAdminCode(data.eventId, data.adminCode);
+  if (!isValid) {
+    return { success: false, error: 'Invalid admin code' };
+  }
+
+  await sql`
+    DELETE FROM responses
+    WHERE event_id = ${data.eventId} AND name = ${data.responseName}
+  `;
+
+  return { success: true };
 }

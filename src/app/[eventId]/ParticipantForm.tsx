@@ -1,9 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Calendar from '@/components/Calendar';
-import TimeSlotSelector from '@/components/TimeSlotSelector';
 import { submitResponse, TimeSlot } from '@/lib/actions';
+
+// Confetti particle component
+function Confetti() {
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    color: string;
+    rotation: number;
+    scale: number;
+    delay: number;
+  }>>([]);
+
+  useEffect(() => {
+    const colors = ['#FF6B6B', '#FFEAA7', '#F9A826', '#A8D5BA', '#FF8A8A', '#FFC048'];
+    const newParticles = Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      scale: 0.5 + Math.random() * 0.5,
+      delay: Math.random() * 0.5,
+    }));
+    setParticles(newParticles);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute animate-confetti"
+          style={{
+            left: `${p.x}%`,
+            top: '-20px',
+            animationDelay: `${p.delay}s`,
+            transform: `rotate(${p.rotation}deg) scale(${p.scale})`,
+          }}
+        >
+          <div
+            className="w-3 h-3 rounded-sm"
+            style={{ backgroundColor: p.color }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface ParticipantFormProps {
   eventId: string;
@@ -17,11 +65,12 @@ export default function ParticipantForm({
   timeSlots,
 }: ParticipantFormProps) {
   const [name, setName] = useState('');
+  const [plusOne, setPlusOne] = useState('');
+  const [hasPlusOne, setHasPlusOne] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [availability, setAvailability] = useState<Record<string, TimeSlot[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [activeDate, setActiveDate] = useState<string | null>(null);
 
   const handleDateToggle = (date: string) => {
     if (!hostDates.includes(date)) return;
@@ -33,24 +82,14 @@ export default function ParticipantForm({
         delete next[date];
         return next;
       });
-      if (activeDate === date) {
-        setActiveDate(null);
-      }
     } else {
       setSelectedDates((prev) => [...prev, date]);
+      // Automatically mark as available for all host's time slots
       setAvailability((prev) => ({
         ...prev,
         [date]: [...timeSlots],
       }));
-      setActiveDate(date);
     }
-  };
-
-  const handleTimeSlotChange = (date: string, slots: TimeSlot[]) => {
-    setAvailability((prev) => ({
-      ...prev,
-      [date]: slots,
-    }));
   };
 
   const canSubmit = name.trim().length > 0 && selectedDates.length > 0;
@@ -64,6 +103,7 @@ export default function ParticipantForm({
         eventId,
         name: name.trim(),
         availability,
+        plusOne: hasPlusOne && plusOne.trim() ? plusOne.trim() : undefined,
       });
       setIsSubmitted(true);
     } catch (error) {
@@ -85,29 +125,54 @@ export default function ParticipantForm({
 
   if (isSubmitted) {
     return (
-      <div className="text-center py-12 animate-scaleIn">
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-[var(--sage)]/20 mb-6">
-          <span className="text-5xl">🎉</span>
+      <>
+        <Confetti />
+        <div className="text-center py-12 animate-scaleIn">
+          {/* Celebration icon with glow */}
+          <div className="relative inline-block mb-6">
+            <div className="absolute inset-0 bg-[var(--sage)] rounded-full blur-xl opacity-30 animate-pulse" />
+            <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-[var(--sage)]/30 to-[var(--sage)]/10 border border-[var(--sage)]/20">
+              <span className="text-5xl animate-bounce-subtle">🎉</span>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-display font-bold text-[var(--warm-brown)] mb-2">
+            Thanks, {name}!
+          </h2>
+          <p className="text-[var(--warm-gray)] mb-6">
+            Your availability has been saved.
+          </p>
+
+          {/* Host will reach out message */}
+          <div className="bg-gradient-to-r from-[var(--peach-light)] to-[var(--cream)] rounded-2xl p-5 mb-8 border border-[var(--peach)]/50 max-w-sm mx-auto">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">📬</span>
+              <div className="text-left">
+                <p className="text-sm font-medium text-[var(--warm-brown)] mb-1">
+                  What&apos;s next?
+                </p>
+                <p className="text-sm text-[var(--warm-gray)]">
+                  The host will reach out with more details once the best date is decided. Stay tuned!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setIsSubmitted(false);
+              setName('');
+              setPlusOne('');
+              setHasPlusOne(false);
+              setSelectedDates([]);
+              setAvailability({});
+            }}
+            className="text-[var(--coral)] font-semibold hover:underline"
+          >
+            Submit another response →
+          </button>
         </div>
-        <h2 className="text-2xl font-display font-bold text-[var(--warm-brown)] mb-2">
-          Thanks, {name}!
-        </h2>
-        <p className="text-[var(--warm-gray)] mb-8">
-          Your availability has been saved.
-        </p>
-        <button
-          onClick={() => {
-            setIsSubmitted(false);
-            setName('');
-            setSelectedDates([]);
-            setAvailability({});
-            setActiveDate(null);
-          }}
-          className="text-[var(--coral)] font-semibold hover:underline"
-        >
-          Submit another response →
-        </button>
-      </div>
+      </>
     );
   }
 
@@ -115,9 +180,12 @@ export default function ParticipantForm({
     <div className="space-y-6 animate-fadeInUp stagger-1">
       {/* Name input */}
       <div className="card-elevated p-6">
-        <h2 className="text-xl font-display font-semibold text-[var(--warm-brown)] mb-4">
+        <h2 className="text-xl font-display font-semibold text-[var(--warm-brown)] mb-2">
           First, who are you?
         </h2>
+        <p className="text-sm text-[var(--warm-gray)] mb-4">
+          Please use your real name so we know who you are!
+        </p>
         <input
           type="text"
           value={name}
@@ -126,6 +194,33 @@ export default function ParticipantForm({
           className="input-warm"
           autoFocus
         />
+
+        {/* Plus one toggle */}
+        <div className="mt-4 pt-4 border-t border-[var(--cream-dark)]">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={hasPlusOne}
+                onChange={(e) => setHasPlusOne(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[var(--cream-dark)] rounded-full peer peer-checked:bg-[var(--coral)] transition-colors" />
+              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm" />
+            </div>
+            <span className="text-sm text-[var(--warm-brown)]">Bringing a +1?</span>
+          </label>
+
+          {hasPlusOne && (
+            <input
+              type="text"
+              value={plusOne}
+              onChange={(e) => setPlusOne(e.target.value)}
+              placeholder="Your +1's name"
+              className="input-warm mt-3"
+            />
+          )}
+        </div>
       </div>
 
       {/* Calendar */}
@@ -139,46 +234,6 @@ export default function ParticipantForm({
           selectableDates={hostDates}
         />
       </div>
-
-      {/* Time slot refinement */}
-      {selectedDates.length > 0 && (
-        <div className="card-elevated p-6 animate-scaleIn">
-          <h2 className="text-lg font-display font-semibold text-[var(--warm-brown)] mb-2">
-            Fine-tune your times
-          </h2>
-          <p className="text-[var(--warm-gray)] text-sm mb-4">
-            Tap a date to adjust which times work
-          </p>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {selectedDates.sort().map((date) => (
-              <button
-                key={date}
-                onClick={() => setActiveDate(activeDate === date ? null : date)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  activeDate === date
-                    ? 'bg-[var(--coral)] text-white shadow-md'
-                    : 'bg-[var(--cream-dark)] text-[var(--warm-brown)] hover:bg-[var(--peach-light)]'
-                }`}
-              >
-                {formatDate(date)}
-              </button>
-            ))}
-          </div>
-
-          {activeDate && (
-            <div className="pt-4 border-t border-[var(--cream-dark)]">
-              <p className="text-sm font-medium text-[var(--warm-gray)] mb-3">
-                Times for {formatDate(activeDate)}:
-              </p>
-              <TimeSlotSelector
-                selected={availability[activeDate] || []}
-                onChange={(slots) => handleTimeSlotChange(activeDate, slots)}
-              />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Selection count */}
       {selectedDates.length > 0 && (

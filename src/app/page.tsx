@@ -294,7 +294,7 @@ export default function Home() {
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--warm-gray-light)] mt-12">
-          Made for friends who can never pick a date 💛
+          Built with &lt;3 by Jacky and Christine
         </p>
       </div>
     </main>
