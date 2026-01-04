@@ -69,6 +69,14 @@ export async function createEvent(data: {
   return { id };
 }
 
+// Helper to safely parse JSONB fields that might come back as strings
+function parseJsonField<T>(value: unknown): T {
+  if (typeof value === 'string') {
+    return JSON.parse(value) as T;
+  }
+  return value as T;
+}
+
 export async function getEvent(id: string): Promise<Event | null> {
   const result = await sql`
     SELECT * FROM events WHERE id = ${id}
@@ -83,8 +91,8 @@ export async function getEvent(id: string): Promise<Event | null> {
     location: row.location,
     description: row.description,
     admin_code: row.admin_code,
-    host_dates: row.host_dates as string[],
-    time_slots: row.time_slots as TimeSlot[],
+    host_dates: parseJsonField<string[]>(row.host_dates),
+    time_slots: parseJsonField<TimeSlot[]>(row.time_slots),
     created_at: row.created_at,
   };
 }
@@ -136,7 +144,7 @@ export async function getResponses(eventId: string): Promise<Response[]> {
     id: row.id,
     event_id: row.event_id,
     name: row.name,
-    availability: row.availability as Record<string, TimeSlot[]>,
+    availability: parseJsonField<Record<string, TimeSlot[]>>(row.availability),
     created_at: row.created_at,
     updated_at: row.updated_at,
   }));
