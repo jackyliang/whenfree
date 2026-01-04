@@ -4,10 +4,9 @@ import { useState } from 'react';
 
 interface CopyButtonProps {
   text: string;
-  label?: string;
 }
 
-export default function CopyButton({ text, label = 'Copy' }: CopyButtonProps) {
+export default function CopyButton({ text }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -16,7 +15,6 @@ export default function CopyButton({ text, label = 'Copy' }: CopyButtonProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = text;
       document.body.appendChild(textArea);
@@ -31,13 +29,13 @@ export default function CopyButton({ text, label = 'Copy' }: CopyButtonProps) {
   return (
     <button
       onClick={handleCopy}
-      className={`px-4 py-3 rounded-xl font-medium transition-all ${
+      className={`px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
         copied
-          ? 'bg-green-500 text-white'
-          : 'bg-indigo-500 text-white hover:bg-indigo-600'
+          ? 'bg-[var(--sage)] text-white'
+          : 'bg-[var(--coral)] text-white hover:bg-[var(--coral-dark)] shadow-md shadow-[var(--coral)]/20'
       }`}
     >
-      {copied ? 'Copied!' : label}
+      {copied ? '✓' : 'Copy'}
     </button>
   );
 }

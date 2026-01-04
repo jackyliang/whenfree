@@ -51,78 +51,103 @@ export default function Home() {
     }
   };
 
+  const stepLabels = ['Details', 'Schedule', 'Secure'];
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">
+    <main className="min-h-screen bg-[var(--cream)] noise-bg relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="blob blob-coral w-72 h-72 -top-20 -right-20 animate-pulse-soft" />
+      <div className="blob blob-peach w-96 h-96 -bottom-32 -left-32 animate-pulse-soft" style={{ animationDelay: '2s' }} />
+      <div className="blob blob-amber w-64 h-64 top-1/2 right-0 animate-pulse-soft" style={{ animationDelay: '1s' }} />
+
+      <div className="relative z-10 max-w-xl mx-auto px-4 py-8 sm:py-16">
+        {/* Header */}
+        <div className="text-center mb-10 animate-fadeInUp">
+          <div className="inline-block mb-4">
+            <span className="text-5xl">📅</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-display font-bold text-[var(--warm-brown)] mb-3 tracking-tight">
             WhenFree
           </h1>
-          <p className="text-gray-600 text-lg">
-            Find the perfect time to hang out with friends
+          <p className="text-[var(--warm-gray)] text-lg">
+            Find the perfect time to hang with your people
           </p>
         </div>
 
         {/* Progress indicator */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-center gap-3 mb-10">
           {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`h-2 rounded-full transition-all ${
-                s === step
-                  ? 'w-8 bg-indigo-500'
-                  : s < step
-                  ? 'w-2 bg-indigo-300'
-                  : 'w-2 bg-gray-200'
-              }`}
-            />
+            <div key={s} className="flex items-center gap-2">
+              <div
+                className={`
+                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300
+                  ${s === step
+                    ? 'bg-[var(--coral)] text-white shadow-lg shadow-[var(--coral)]/30 scale-110'
+                    : s < step
+                    ? 'bg-[var(--sage)] text-white'
+                    : 'bg-[var(--cream-dark)] text-[var(--warm-gray-light)]'
+                  }
+                `}
+              >
+                {s < step ? '✓' : s}
+              </div>
+              {s < 3 && (
+                <div className={`w-8 h-1 rounded-full transition-all duration-300 ${s < step ? 'bg-[var(--sage)]' : 'bg-[var(--cream-dark)]'}`} />
+              )}
+            </div>
           ))}
         </div>
 
+        {/* Step label */}
+        <p className="text-center text-sm font-medium text-[var(--warm-gray)] mb-6 uppercase tracking-widest">
+          {stepLabels[step - 1]}
+        </p>
+
         {step === 1 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="space-y-6 animate-fadeInUp">
+            <div className="card-elevated p-6 sm:p-8">
+              <h2 className="text-2xl font-display font-semibold text-[var(--warm-brown)] mb-6">
                 What&apos;s the occasion?
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Event Title *
+                  <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-2">
+                    Give it a name
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Summer BBQ, Game Night, Brunch Meetup"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                    placeholder="Summer BBQ, Game Night, Brunch..."
+                    className="input-warm"
+                    autoFocus
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location (optional)
+                  <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-2">
+                    Where at? <span className="font-normal text-[var(--warm-gray-light)]">(optional)</span>
                   </label>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., My place, Central Park, TBD"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                    placeholder="My place, the park, TBD..."
+                    className="input-warm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description (optional)
+                  <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-2">
+                    Any deets? <span className="font-normal text-[var(--warm-gray-light)]">(optional)</span>
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Any details your friends should know..."
+                    placeholder="BYOB, bring a dish, wear comfy clothes..."
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all resize-none"
+                    className="input-warm resize-none"
                   />
                 </div>
               </div>
@@ -131,30 +156,26 @@ export default function Home() {
             <button
               onClick={() => setStep(2)}
               disabled={!canProceedStep1}
-              className={`w-full py-4 rounded-xl font-semibold text-white transition-all ${
-                canProceedStep1
-                  ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg hover:shadow-xl'
-                  : 'bg-gray-300 cursor-not-allowed'
-              }`}
+              className={`btn-primary w-full ${!canProceedStep1 && 'opacity-50 cursor-not-allowed'}`}
             >
-              Next: Pick Dates
+              Next: Pick your dates →
             </button>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                When are you available?
+          <div className="space-y-6 animate-fadeInUp">
+            <div className="card-elevated p-6 sm:p-8">
+              <h2 className="text-2xl font-display font-semibold text-[var(--warm-brown)] mb-2">
+                When works for you?
               </h2>
-              <p className="text-gray-500 text-sm mb-4">
-                Select the dates you could host, and what times work for you
+              <p className="text-[var(--warm-gray)] text-sm mb-6">
+                Pick time slots and dates you&apos;re free
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Time of day
+                <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-3">
+                  What time of day?
                 </label>
                 <TimeSlotSelector selected={timeSlots} onChange={setTimeSlots} />
               </div>
@@ -163,48 +184,45 @@ export default function Home() {
             <Calendar selectedDates={selectedDates} onDateToggle={handleDateToggle} />
 
             {selectedDates.length > 0 && (
-              <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-                <p className="text-sm text-indigo-700">
-                  <span className="font-medium">{selectedDates.length}</span> date
-                  {selectedDates.length !== 1 ? 's' : ''} selected
-                </p>
+              <div className="bg-[var(--peach-light)] rounded-2xl p-4 border border-[var(--peach)]">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">✨</span>
+                  <p className="text-sm text-[var(--warm-brown)]">
+                    <span className="font-bold">{selectedDates.length}</span> date{selectedDates.length !== 1 ? 's' : ''} selected
+                  </p>
+                </div>
               </div>
             )}
 
             <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 py-4 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
-              >
-                Back
+              <button onClick={() => setStep(1)} className="btn-secondary flex-1">
+                ← Back
               </button>
               <button
                 onClick={() => setStep(3)}
                 disabled={!canProceedStep2}
-                className={`flex-1 py-4 rounded-xl font-semibold text-white transition-all ${
-                  canProceedStep2
-                    ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg'
-                    : 'bg-gray-300 cursor-not-allowed'
-                }`}
+                className={`btn-primary flex-1 ${!canProceedStep2 && 'opacity-50 cursor-not-allowed'}`}
               >
-                Next: Set Code
+                Almost done →
               </button>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Set your admin code
-              </h2>
-              <p className="text-gray-500 text-sm mb-6">
-                You&apos;ll use this 4-digit code to view responses at{' '}
-                <span className="font-mono text-indigo-600">/manage</span>
-              </p>
+          <div className="space-y-6 animate-fadeInUp">
+            <div className="card-elevated p-6 sm:p-8">
+              <div className="text-center mb-6">
+                <span className="text-4xl mb-4 block">🔐</span>
+                <h2 className="text-2xl font-display font-semibold text-[var(--warm-brown)] mb-2">
+                  Set a secret code
+                </h2>
+                <p className="text-[var(--warm-gray)] text-sm">
+                  You&apos;ll need this to see responses later
+                </p>
+              </div>
 
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-center gap-3 mb-4">
                 {[0, 1, 2, 3].map((i) => (
                   <input
                     key={i}
@@ -232,57 +250,53 @@ export default function Home() {
                         }
                       }
                     }}
-                    className="w-14 h-16 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                    className="w-16 h-20 text-center text-3xl font-bold rounded-2xl border-2 border-[var(--warm-gray-light)]/20 bg-[var(--cream-dark)] focus:border-[var(--coral)] focus:ring-4 focus:ring-[var(--coral)]/10 outline-none transition-all"
                   />
                 ))}
               </div>
+
+              <p className="text-center text-xs text-[var(--warm-gray-light)]">
+                4 digits to keep things safe
+              </p>
             </div>
 
-            <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
-              <p className="text-sm text-amber-800">
-                <span className="font-medium">Remember this code!</span> You&apos;ll
-                need it to see who responded.
+            <div className="bg-[var(--peach-light)] rounded-2xl p-4 border border-[var(--peach)] flex items-start gap-3">
+              <span className="text-xl">💡</span>
+              <p className="text-sm text-[var(--warm-brown)]">
+                <span className="font-semibold">Pro tip:</span> Write this down or screenshot it. You&apos;ll need it to check who&apos;s free!
               </p>
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 py-4 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
-              >
-                Back
+              <button onClick={() => setStep(2)} className="btn-secondary flex-1">
+                ← Back
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit || isSubmitting}
-                className={`flex-1 py-4 rounded-xl font-semibold text-white transition-all ${
-                  canSubmit && !isSubmitting
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg'
-                    : 'bg-gray-300 cursor-not-allowed'
-                }`}
+                className={`btn-primary flex-1 ${(!canSubmit || isSubmitting) && 'opacity-50 cursor-not-allowed'}`}
               >
-                {isSubmitting ? 'Creating...' : 'Create Event'}
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating...
+                  </span>
+                ) : (
+                  'Create Event 🎉'
+                )}
               </button>
             </div>
           </div>
         )}
-      </div>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-      `}</style>
+        {/* Footer */}
+        <p className="text-center text-xs text-[var(--warm-gray-light)] mt-12">
+          Made for friends who can never pick a date 💛
+        </p>
+      </div>
     </main>
   );
 }

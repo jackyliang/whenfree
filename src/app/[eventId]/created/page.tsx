@@ -19,116 +19,108 @@ export default async function CreatedPage({ params }: Props) {
   const manageUrl = `${shareUrl}/manage`;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
-            <svg
-              className="w-10 h-10 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+    <main className="min-h-screen bg-[var(--cream)] noise-bg relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="blob blob-sage w-80 h-80 -top-20 -right-20 animate-pulse-soft" style={{ background: 'var(--sage)' }} />
+      <div className="blob blob-peach w-72 h-72 bottom-20 -left-20 animate-pulse-soft" style={{ animationDelay: '1s' }} />
+
+      <div className="relative z-10 max-w-xl mx-auto px-4 py-8 sm:py-16">
+        <div className="text-center mb-10 animate-fadeInUp">
+          <div className="inline-block mb-4">
+            <span className="text-6xl">🎉</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-3">
-            Event Created!
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-[var(--warm-brown)] mb-3">
+            You&apos;re all set!
           </h1>
-          <p className="text-gray-600 text-lg">
-            Share the link below with your friends
+          <p className="text-[var(--warm-gray)] text-lg">
+            Share the link with your people
           </p>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-800 mb-1">
-              {event.title}
-            </h2>
-            {event.location && (
-              <p className="text-gray-500 text-sm mb-4">
-                {event.location}
-              </p>
-            )}
-
-            <div className="space-y-4">
+        <div className="space-y-6 animate-fadeInUp stagger-1">
+          {/* Event info card */}
+          <div className="card-elevated p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--peach-light)] flex items-center justify-center text-2xl">
+                📅
+              </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Share this link with friends
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={shareUrl}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-mono text-sm"
-                  />
-                  <CopyButton text={shareUrl} label="Copy" />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-gray-100">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Your admin link (bookmark this!)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={manageUrl}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-mono text-sm"
-                  />
-                  <CopyButton text={manageUrl} label="Copy" />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Use your 4-digit code to view responses
-                </p>
+                <h2 className="text-xl font-display font-semibold text-[var(--warm-brown)]">
+                  {event.title}
+                </h2>
+                {event.location && (
+                  <p className="text-[var(--warm-gray)] text-sm mt-1">
+                    📍 {event.location}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
-            <div className="flex gap-3">
-              <svg
-                className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-sm text-amber-800">
-                <span className="font-medium">Tip:</span> Send both links to yourself
-                via email or notes app so you don&apos;t lose them!
-              </p>
+          {/* Share link */}
+          <div className="card-elevated p-6">
+            <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-3">
+              🔗 Share this with friends
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={shareUrl}
+                className="flex-1 px-4 py-3 rounded-xl border-2 border-[var(--cream-dark)] bg-[var(--cream)] text-[var(--warm-brown)] font-mono text-sm"
+              />
+              <CopyButton text={shareUrl} />
             </div>
           </div>
 
-          <div className="flex gap-3">
+          {/* Admin link */}
+          <div className="card-elevated p-6">
+            <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-3">
+              🔐 Your admin link <span className="font-normal text-[var(--warm-gray-light)]">(save this!)</span>
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={manageUrl}
+                className="flex-1 px-4 py-3 rounded-xl border-2 border-[var(--cream-dark)] bg-[var(--cream)] text-[var(--warm-brown)] font-mono text-sm"
+              />
+              <CopyButton text={manageUrl} />
+            </div>
+            <p className="text-xs text-[var(--warm-gray-light)] mt-2">
+              Use your 4-digit code to see who&apos;s free
+            </p>
+          </div>
+
+          {/* Tip */}
+          <div className="bg-[var(--peach-light)] rounded-2xl p-4 border border-[var(--peach)] flex items-start gap-3">
+            <span className="text-xl">💡</span>
+            <p className="text-sm text-[var(--warm-brown)]">
+              <span className="font-semibold">Pro tip:</span> Text or email both links to yourself so you don&apos;t lose them!
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3 pt-2">
             <Link
               href={`/${eventId}`}
-              className="flex-1 py-4 rounded-xl font-semibold text-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all"
+              className="btn-secondary flex-1 text-center"
             >
-              View Event
+              Preview Event
             </Link>
             <Link
               href={`/${eventId}/manage`}
-              className="flex-1 py-4 rounded-xl font-semibold text-center text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg transition-all"
+              className="btn-primary flex-1 text-center"
             >
-              Manage Responses
+              View Responses →
             </Link>
           </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-[var(--warm-gray-light)] mt-12">
+          Made with 💛 by WhenFree
+        </p>
       </div>
     </main>
   );

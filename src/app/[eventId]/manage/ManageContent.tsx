@@ -41,7 +41,7 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
-      const interval = setInterval(loadData, 10000); // Refresh every 10 seconds
+      const interval = setInterval(loadData, 10000);
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, loadData]);
@@ -57,10 +57,10 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
       if (isValid) {
         setIsAuthenticated(true);
       } else {
-        setError('Invalid code. Please try again.');
+        setError('Wrong code. Try again!');
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      const message = err instanceof Error ? err.message : 'Something went wrong.';
       setError(message);
     } finally {
       setIsVerifying(false);
@@ -100,11 +100,8 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
     if (!event || responses.length === 0) return '';
 
     const lines: string[] = [`📅 ${eventTitle} - Availability Summary\n`];
-
-    // Sort dates
     const sortedDates = [...event.host_dates].sort();
 
-    // For each date, show who's available
     for (const date of sortedDates) {
       const available = responses.filter(
         (r) => r.availability[date] && r.availability[date].length > 0
@@ -121,7 +118,6 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
       }
     }
 
-    // Find best dates
     const dateCounts: Record<string, number> = {};
     for (const date of sortedDates) {
       dateCounts[date] = responses.filter(
@@ -149,7 +145,6 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const textArea = document.createElement('textarea');
       textArea.value = summary;
       document.body.appendChild(textArea);
@@ -161,21 +156,23 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
     }
   };
 
+  // Login screen
   if (!isAuthenticated) {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto animate-fadeInUp">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <span className="text-4xl mb-4 block">🔐</span>
+          <h1 className="text-3xl font-display font-bold text-[var(--warm-brown)] mb-2">
             Manage Event
           </h1>
-          <p className="text-gray-600">{eventTitle}</p>
+          <p className="text-[var(--warm-gray)]">{eventTitle}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2 text-center">
-            Enter your admin code
+        <div className="card-elevated p-6 sm:p-8">
+          <h2 className="text-xl font-display font-semibold text-[var(--warm-brown)] mb-2 text-center">
+            Enter your secret code
           </h2>
-          <p className="text-gray-500 text-sm mb-6 text-center">
+          <p className="text-[var(--warm-gray)] text-sm mb-6 text-center">
             The 4-digit code you set when creating this event
           </p>
 
@@ -187,6 +184,7 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                 inputMode="numeric"
                 maxLength={1}
                 value={adminCode[i] || ''}
+                autoFocus={i === 0}
                 onChange={(e) => {
                   const val = e.target.value.replace(/\D/g, '');
                   if (val) {
@@ -199,8 +197,7 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Backspace' && !adminCode[i]) {
-                    const prev = (e.target as HTMLElement)
-                      .previousElementSibling as HTMLInputElement;
+                    const prev = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
                     if (prev) {
                       prev.focus();
                       setAdminCode((c) => c.slice(0, -1));
@@ -210,49 +207,41 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                     handleVerify();
                   }
                 }}
-                className="w-14 h-16 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                className="w-16 h-20 text-center text-3xl font-bold rounded-2xl border-2 border-[var(--warm-gray-light)]/20 bg-[var(--cream-dark)] focus:border-[var(--coral)] focus:ring-4 focus:ring-[var(--coral)]/10 outline-none transition-all"
               />
             ))}
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+            <div className="bg-red-50 text-red-600 text-sm text-center p-3 rounded-xl mb-4">
+              {error}
+            </div>
           )}
 
           <button
             onClick={handleVerify}
             disabled={adminCode.length !== 4 || isVerifying}
-            className={`w-full py-4 rounded-xl font-semibold text-white transition-all ${
-              adminCode.length === 4 && !isVerifying
-                ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg'
-                : 'bg-gray-300 cursor-not-allowed'
-            }`}
+            className={`btn-primary w-full ${(adminCode.length !== 4 || isVerifying) && 'opacity-50 cursor-not-allowed'}`}
           >
-            {isVerifying ? 'Verifying...' : 'View Responses'}
+            {isVerifying ? 'Checking...' : 'View Responses'}
           </button>
         </div>
       </div>
     );
   }
 
-  // Authenticated view - show results
+  // Loading state
   if (!event) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Loading...</p>
+        <div className="inline-block animate-spin text-4xl mb-4">⏳</div>
+        <p className="text-[var(--warm-gray)]">Loading responses...</p>
       </div>
     );
   }
 
   const sortedDates = [...event.host_dates].sort();
 
-  // Calculate availability matrix
-  const availabilityMatrix: Record<string, Record<string, TimeSlot[]>> = {};
-  for (const r of responses) {
-    availabilityMatrix[r.name] = r.availability;
-  }
-
-  // Find best dates (most people available)
   const dateCounts: Record<string, number> = {};
   for (const date of sortedDates) {
     dateCounts[date] = responses.filter(
@@ -262,63 +251,64 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
   const maxCount = Math.max(...Object.values(dateCounts), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeInUp">
+      {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">{event.title}</h1>
-        {event.location && <p className="text-gray-500">{event.location}</p>}
-        <p className="text-indigo-600 font-medium mt-2">
-          {responses.length} response{responses.length !== 1 ? 's' : ''}
-        </p>
+        <span className="text-4xl mb-4 block">📊</span>
+        <h1 className="text-3xl font-display font-bold text-[var(--warm-brown)] mb-2">
+          {event.title}
+        </h1>
+        {event.location && (
+          <p className="text-[var(--warm-gray)] flex items-center justify-center gap-2">
+            <span>📍</span> {event.location}
+          </p>
+        )}
+        <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-[var(--peach-light)] border border-[var(--peach)]">
+          <span className="text-lg">👥</span>
+          <span className="font-semibold text-[var(--warm-brown)]">
+            {responses.length} response{responses.length !== 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
 
       {responses.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 text-center">
-          <div className="text-gray-400 mb-4">
-            <svg
-              className="w-16 h-16 mx-auto"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        <div className="card-elevated p-8 text-center">
+          <div className="text-5xl mb-4">🦗</div>
+          <h2 className="text-xl font-display font-semibold text-[var(--warm-brown)] mb-2">
             No responses yet
           </h2>
-          <p className="text-gray-500">
-            Share your event link with friends to start collecting availability
+          <p className="text-[var(--warm-gray)] max-w-sm mx-auto">
+            Share your event link with friends to start collecting availability!
           </p>
         </div>
       ) : (
         <>
           {/* Availability Grid */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="card-elevated overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 sticky left-0 bg-white">
+                  <tr className="border-b border-[var(--cream-dark)]">
+                    <th className="px-4 py-4 text-left text-sm font-semibold text-[var(--warm-brown)] sticky left-0 bg-white z-10">
                       Name
                     </th>
                     {sortedDates.map((date) => (
                       <th
                         key={date}
-                        className={`px-4 py-3 text-center text-sm font-medium whitespace-nowrap ${
+                        className={`px-4 py-4 text-center text-sm font-medium whitespace-nowrap ${
                           dateCounts[date] === maxCount && maxCount > 0
-                            ? 'text-green-700 bg-green-50'
-                            : 'text-gray-600'
+                            ? 'text-[var(--sage-dark)] bg-[var(--sage)]/10'
+                            : 'text-[var(--warm-gray)]'
                         }`}
                       >
-                        {formatDate(date)}
-                        {dateCounts[date] === maxCount && maxCount > 0 && (
-                          <span className="ml-1">⭐</span>
-                        )}
+                        <div className="flex flex-col items-center gap-1">
+                          <span>{formatDate(date)}</span>
+                          {dateCounts[date] === maxCount && maxCount > 0 && (
+                            <span className="text-xs bg-[var(--sage)] text-white px-2 py-0.5 rounded-full">
+                              Best!
+                            </span>
+                          )}
+                        </div>
                       </th>
                     ))}
                   </tr>
@@ -327,21 +317,23 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                   {responses.map((r, idx) => (
                     <tr
                       key={r.name}
-                      className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
+                      className={`border-b border-[var(--cream-dark)] last:border-0 ${
+                        idx % 2 === 0 ? 'bg-[var(--cream)]/50' : 'bg-white'
+                      }`}
                     >
-                      <td className="px-4 py-3 text-sm font-medium text-gray-800 sticky left-0 bg-inherit">
+                      <td className="px-4 py-4 text-sm font-medium text-[var(--warm-brown)] sticky left-0 bg-inherit z-10">
                         {r.name}
                       </td>
                       {sortedDates.map((date) => {
                         const slots = r.availability[date] || [];
                         return (
-                          <td key={date} className="px-4 py-3 text-center">
+                          <td key={date} className="px-4 py-4 text-center">
                             {slots.length > 0 ? (
-                              <span className="text-lg" title={slots.map(getSlotLabel).join(', ')}>
+                              <span className="text-xl" title={slots.map(getSlotLabel).join(', ')}>
                                 {slots.map((s) => getSlotEmoji(s)).join('')}
                               </span>
                             ) : (
-                              <span className="text-gray-300">—</span>
+                              <span className="text-[var(--warm-gray-light)]">—</span>
                             )}
                           </td>
                         );
@@ -350,17 +342,17 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-gray-200 bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-700 sticky left-0 bg-gray-50">
+                  <tr className="bg-[var(--cream-dark)]">
+                    <td className="px-4 py-4 text-sm font-bold text-[var(--warm-brown)] sticky left-0 bg-[var(--cream-dark)] z-10">
                       Total
                     </td>
                     {sortedDates.map((date) => (
                       <td
                         key={date}
-                        className={`px-4 py-3 text-center text-sm font-semibold ${
+                        className={`px-4 py-4 text-center text-sm font-bold ${
                           dateCounts[date] === maxCount && maxCount > 0
-                            ? 'text-green-700'
-                            : 'text-gray-600'
+                            ? 'text-[var(--sage-dark)]'
+                            : 'text-[var(--warm-gray)]'
                         }`}
                       >
                         {dateCounts[date]}/{responses.length}
@@ -373,35 +365,36 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
           </div>
 
           {/* Legend */}
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <p className="text-sm text-gray-600 font-medium mb-2">Legend:</p>
-            <div className="flex flex-wrap gap-4 text-sm">
+          <div className="card p-4">
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <span className="font-medium text-[var(--warm-gray)]">Legend:</span>
               {event.time_slots.map((slot) => (
-                <span key={slot} className="flex items-center gap-1">
-                  <span>{getSlotEmoji(slot)}</span>
-                  <span className="text-gray-600">{getSlotLabel(slot)}</span>
+                <span key={slot} className="flex items-center gap-1.5">
+                  <span className="text-lg">{getSlotEmoji(slot)}</span>
+                  <span className="text-[var(--warm-brown)]">{getSlotLabel(slot)}</span>
                 </span>
               ))}
-              <span className="flex items-center gap-1">
-                <span>⭐</span>
-                <span className="text-gray-600">Best date(s)</span>
-              </span>
             </div>
           </div>
 
           {/* Copy Summary Button */}
           <button
             onClick={handleCopySummary}
-            className={`w-full py-4 rounded-xl font-semibold transition-all ${
+            className={`w-full py-4 rounded-2xl font-semibold transition-all duration-200 ${
               copied
-                ? 'bg-green-500 text-white'
-                : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg'
+                ? 'bg-[var(--sage)] text-white'
+                : 'btn-primary'
             }`}
           >
-            {copied ? 'Copied to clipboard!' : 'Copy Summary for Group Chat'}
+            {copied ? '✓ Copied to clipboard!' : 'Copy Summary for Group Chat 📋'}
           </button>
         </>
       )}
+
+      {/* Footer */}
+      <p className="text-center text-xs text-[var(--warm-gray-light)]">
+        Auto-refreshes every 10 seconds
+      </p>
     </div>
   );
 }

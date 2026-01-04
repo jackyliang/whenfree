@@ -8,11 +8,35 @@ interface TimeSlotSelectorProps {
   disabled?: boolean;
 }
 
-const slots: { id: TimeSlot; label: string; emoji: string; description: string }[] = [
-  { id: 'breakfast', label: 'Breakfast', emoji: '🌅', description: '~8-11am' },
-  { id: 'lunch', label: 'Lunch', emoji: '☀️', description: '~11am-2pm' },
-  { id: 'dinner', label: 'Dinner', emoji: '🌙', description: '~6-9pm' },
-  { id: 'allday', label: 'All Day', emoji: '🎉', description: 'The whole day!' },
+const slots: { id: TimeSlot; label: string; emoji: string; description: string; gradient: string }[] = [
+  {
+    id: 'breakfast',
+    label: 'Breakfast',
+    emoji: '🌅',
+    description: '8-11am',
+    gradient: 'from-amber-100 to-orange-100'
+  },
+  {
+    id: 'lunch',
+    label: 'Lunch',
+    emoji: '☀️',
+    description: '11am-2pm',
+    gradient: 'from-yellow-100 to-amber-100'
+  },
+  {
+    id: 'dinner',
+    label: 'Dinner',
+    emoji: '🌙',
+    description: '6-9pm',
+    gradient: 'from-purple-100 to-pink-100'
+  },
+  {
+    id: 'allday',
+    label: 'All Day',
+    emoji: '🎉',
+    description: 'Whole day!',
+    gradient: 'from-rose-100 to-orange-100'
+  },
 ];
 
 export default function TimeSlotSelector({
@@ -53,21 +77,42 @@ export default function TimeSlotSelector({
             onClick={() => toggleSlot(slot.id)}
             disabled={isDisabled}
             className={`
-              p-4 rounded-xl border-2 transition-all text-center
+              relative p-4 rounded-2xl transition-all duration-200 text-center overflow-hidden group
               ${
                 isSelected
-                  ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                  ? 'bg-[var(--coral)] shadow-lg shadow-[var(--coral)]/25 scale-[1.02]'
                   : isDisabled
-                  ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                  : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/50'
+                  ? 'bg-[var(--cream-dark)] opacity-40 cursor-not-allowed'
+                  : `bg-gradient-to-br ${slot.gradient} hover:scale-[1.02] hover:shadow-md`
               }
             `}
           >
-            <div className="text-2xl mb-1">{slot.emoji}</div>
-            <div className={`font-medium ${isSelected ? 'text-indigo-700' : 'text-gray-700'}`}>
-              {slot.label}
+            {/* Animated background on hover */}
+            {!isSelected && !isDisabled && (
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--coral)]/0 to-[var(--coral)]/0 group-hover:from-[var(--coral)]/5 group-hover:to-[var(--coral)]/10 transition-all duration-300" />
+            )}
+
+            {/* Content */}
+            <div className="relative z-10">
+              <div className={`text-3xl mb-2 transition-transform duration-200 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
+                {slot.emoji}
+              </div>
+              <div className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-[var(--warm-brown)]'}`}>
+                {slot.label}
+              </div>
+              <div className={`text-xs mt-1 ${isSelected ? 'text-white/80' : 'text-[var(--warm-gray)]'}`}>
+                {slot.description}
+              </div>
             </div>
-            <div className="text-xs text-gray-500 mt-1">{slot.description}</div>
+
+            {/* Check mark for selected */}
+            {isSelected && (
+              <div className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <svg className="w-3 h-3 text-[var(--coral)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
           </button>
         );
       })}
