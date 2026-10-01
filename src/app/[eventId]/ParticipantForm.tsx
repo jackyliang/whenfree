@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatShortDate } from '@/lib/slots';
 import Calendar from '@/components/Calendar';
 import { submitResponse, TimeSlot } from '@/lib/actions';
 
@@ -18,7 +19,7 @@ function Confetti() {
 
   useEffect(() => {
     const colors = ['#FF6B6B', '#FFEAA7', '#F9A826', '#A8D5BA', '#FF8A8A', '#FFC048'];
-    const newParticles = Array.from({ length: 50 }, (_, i) => ({
+    const newParticles = Array.from({ length: 40 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -71,6 +72,7 @@ export default function ParticipantForm({
   const [availability, setAvailability] = useState<Record<string, TimeSlot[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleDateToggle = (date: string) => {
     if (!hostDates.includes(date)) return;
@@ -95,9 +97,10 @@ export default function ParticipantForm({
   const canSubmit = name.trim().length > 0 && selectedDates.length > 0;
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isSubmitting) return;
 
     setIsSubmitting(true);
+    setSubmitError('');
     try {
       await submitResponse({
         eventId,
@@ -106,28 +109,20 @@ export default function ParticipantForm({
         plusOne: hasPlusOne && plusOne.trim() ? plusOne.trim() : undefined,
       });
       setIsSubmitted(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error('Failed to submit:', error);
-      alert('Failed to submit. Please try again.');
+      setSubmitError("Couldn't save your response. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   if (isSubmitted) {
     return (
       <>
         <Confetti />
-        <div className="text-center py-12 animate-scaleIn">
+        <div className="card-elevated text-center px-6 py-10 animate-scaleIn">
           {/* Celebration icon with glow */}
           <div className="relative inline-block mb-6">
             <div className="absolute inset-0 bg-[var(--sage)] rounded-full blur-xl opacity-30 animate-pulse" />
@@ -140,11 +135,12 @@ export default function ParticipantForm({
             Thanks, {name}!
           </h2>
           <p className="text-[var(--warm-gray)] mb-6">
-            Your availability has been saved.
+            You&apos;re down for {selectedDates.length} date{selectedDates.length !== 1 ? 's' : ''}:{' '}
+            {[...selectedDates].sort().map(formatShortDate).join(', ')}
           </p>
 
           {/* Host will reach out message */}
-          <div className="bg-gradient-to-r from-[var(--peach-light)] to-[var(--cream)] rounded-2xl p-5 mb-8 border border-[var(--peach)]/50 max-w-sm mx-auto">
+          <div className="bg-[var(--peach-light)] rounded-2xl p-4 mb-6 border border-[var(--peach)] max-w-sm mx-auto">
             <div className="flex items-start gap-3">
               <span className="text-2xl">📬</span>
               <div className="text-left">
@@ -167,7 +163,7 @@ export default function ParticipantForm({
               setSelectedDates([]);
               setAvailability({});
             }}
-            className="text-[var(--coral)] font-semibold hover:underline"
+            className="text-[var(--coral)] font-semibold py-2 px-3 hover:underline"
           >
             Submit another response →
           </button>
@@ -176,56 +172,68 @@ export default function ParticipantForm({
     );
   }
 
+  const submitLabel = !name.trim()
+    ? 'Add your name first'
+    : selectedDates.length === 0
+    ? 'Pick the dates you’re free'
+    : `I'm in for ${selectedDates.length} date${selectedDates.length !== 1 ? 's' : ''}! 🙌`;
+
   return (
-    <div className="space-y-6 animate-fadeInUp stagger-1">
-      {/* Name input */}
-      <div className="card-elevated p-6">
-        <h2 className="text-xl font-display font-semibold text-[var(--warm-brown)] mb-2">
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+    >
+      <div className="card-elevated p-5 sm:p-6">
+        <label htmlFor="guest-name" className="block text-lg font-display font-semibold text-[var(--warm-brown)] mb-1">
           First, who are you?
-        </h2>
-        <p className="text-sm text-[var(--warm-gray)] mb-4">
-          Please use your real name so we know who you are!
+        </label>
+        <p className="text-sm text-[var(--warm-gray)] mb-3">
+          Use your real name so the host knows it&apos;s you
         </p>
         <input
+          id="guest-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
           className="input-warm"
-          autoFocus
+          autoComplete="given-name"
+          autoCapitalize="words"
+          enterKeyHint="done"
         />
 
-        {/* Plus one toggle */}
-        <div className="mt-4 pt-4 border-t border-[var(--cream-dark)]">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={hasPlusOne}
-                onChange={(e) => setHasPlusOne(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-[var(--cream-dark)] rounded-full peer peer-checked:bg-[var(--coral)] transition-colors" />
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm" />
-            </div>
-            <span className="text-sm text-[var(--warm-brown)]">Bringing a +1?</span>
-          </label>
-
-          {hasPlusOne && (
+        <label className="flex items-center justify-between gap-3 mt-3 py-2 cursor-pointer">
+          <span className="text-sm font-medium text-[var(--warm-brown)]">Bringing a +1?</span>
+          <span className="relative">
             <input
-              type="text"
-              value={plusOne}
-              onChange={(e) => setPlusOne(e.target.value)}
-              placeholder="Your +1's name"
-              className="input-warm mt-3"
+              type="checkbox"
+              checked={hasPlusOne}
+              onChange={(e) => setHasPlusOne(e.target.checked)}
+              className="sr-only peer"
             />
-          )}
-        </div>
+            <span className="block w-12 h-7 bg-[var(--cream-dark)] border border-[var(--warm-gray-light)]/20 rounded-full peer-checked:bg-[var(--coral)] peer-checked:border-[var(--coral)] transition-colors" />
+            <span className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm" />
+          </span>
+        </label>
+
+        {hasPlusOne && (
+          <input
+            type="text"
+            value={plusOne}
+            onChange={(e) => setPlusOne(e.target.value)}
+            placeholder="Your +1's name"
+            className="input-warm mt-1 animate-fadeInUp"
+            autoCapitalize="words"
+            enterKeyHint="done"
+          />
+        )}
       </div>
 
-      {/* Calendar */}
-      <div className="animate-fadeInUp stagger-2">
-        <h2 className="text-lg font-display font-semibold text-[var(--warm-brown)] mb-3 px-1">
+      <div>
+        <h2 className="text-lg font-display font-semibold text-[var(--warm-brown)] mb-2 px-1">
           When are you free?
         </h2>
         <Calendar
@@ -235,36 +243,27 @@ export default function ParticipantForm({
         />
       </div>
 
-      {/* Selection count */}
-      {selectedDates.length > 0 && (
-        <div className="bg-[var(--peach-light)] rounded-2xl p-4 border border-[var(--peach)]">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">✨</span>
-            <p className="text-sm text-[var(--warm-brown)]">
-              <span className="font-bold">{selectedDates.length}</span> date{selectedDates.length !== 1 ? 's' : ''} selected
-            </p>
-          </div>
-        </div>
+      {submitError && (
+        <p role="alert" className="bg-red-50 text-red-600 text-sm text-center p-3 rounded-xl">
+          {submitError}
+        </p>
       )}
 
-      {/* Submit button */}
-      <button
-        onClick={handleSubmit}
-        disabled={!canSubmit || isSubmitting}
-        className={`btn-primary w-full ${(!canSubmit || isSubmitting) && 'opacity-50 cursor-not-allowed'}`}
-      >
-        {isSubmitting ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Saving...
-          </span>
-        ) : (
-          "I'm in! 🙌"
-        )}
-      </button>
-    </div>
+      <div className="action-bar">
+        <button type="submit" disabled={!canSubmit || isSubmitting} className="btn-primary w-full">
+          {isSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Saving...
+            </span>
+          ) : (
+            submitLabel
+          )}
+        </button>
+      </div>
+    </form>
   );
 }

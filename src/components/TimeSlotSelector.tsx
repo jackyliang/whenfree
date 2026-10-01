@@ -64,7 +64,7 @@ export default function TimeSlotSelector({
   };
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
       {slots.map((slot) => {
         const isSelected = selected.includes(slot.id);
         const isDisabled =
@@ -76,42 +76,34 @@ export default function TimeSlotSelector({
             type="button"
             onClick={() => toggleSlot(slot.id)}
             disabled={isDisabled}
+            aria-pressed={isSelected}
             className={`
-              relative p-4 rounded-2xl transition-all duration-200 text-center overflow-hidden group
+              relative flex sm:flex-col items-center gap-3 sm:gap-1 p-3 sm:p-4 rounded-2xl text-left sm:text-center transition-all duration-150 active:scale-[0.97] border-2
               ${
                 isSelected
-                  ? 'bg-[var(--coral)] shadow-lg shadow-[var(--coral)]/25 scale-[1.02]'
+                  ? 'bg-[var(--coral)] border-[var(--coral)] shadow-md shadow-[var(--coral)]/25'
                   : isDisabled
-                  ? 'bg-[var(--cream-dark)] opacity-40 cursor-not-allowed'
-                  : `bg-gradient-to-br ${slot.gradient} hover:scale-[1.02] hover:shadow-md`
+                  ? 'bg-[var(--cream-dark)] border-transparent opacity-40 cursor-not-allowed'
+                  : `bg-gradient-to-br ${slot.gradient} border-transparent [@media(hover:hover)]:hover:shadow-md`
               }
             `}
           >
-            {/* Animated background on hover */}
-            {!isSelected && !isDisabled && (
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--coral)]/0 to-[var(--coral)]/0 group-hover:from-[var(--coral)]/5 group-hover:to-[var(--coral)]/10 transition-all duration-300" />
-            )}
-
-            {/* Content */}
-            <div className="relative z-10">
-              <div className={`text-3xl mb-2 transition-transform duration-200 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
-                {slot.emoji}
-              </div>
-              <div className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-[var(--warm-brown)]'}`}>
+            <span className="text-2xl sm:text-3xl leading-none">{slot.emoji}</span>
+            <span className="min-w-0">
+              <span className={`block font-semibold text-sm ${isSelected ? 'text-white' : 'text-[var(--warm-brown)]'}`}>
                 {slot.label}
-              </div>
-              <div className={`text-xs mt-1 ${isSelected ? 'text-white/80' : 'text-[var(--warm-gray)]'}`}>
+              </span>
+              <span className={`block text-xs ${isSelected ? 'text-white/85' : 'text-[var(--warm-gray)]'}`}>
                 {slot.description}
-              </div>
-            </div>
+              </span>
+            </span>
 
-            {/* Check mark for selected */}
             {isSelected && (
-              <div className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
+              <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
                 <svg className="w-3 h-3 text-[var(--coral)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
-              </div>
+              </span>
             )}
           </button>
         );

@@ -29,13 +29,14 @@ export default function CopyButton({ text }: CopyButtonProps) {
   return (
     <button
       onClick={handleCopy}
-      className={`px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
+      type="button"
+      className={`shrink-0 px-5 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95 ${
         copied
-          ? 'bg-[var(--sage)] text-white'
+          ? 'bg-[var(--sage-dark)] text-white'
           : 'bg-[var(--coral)] text-white hover:bg-[var(--coral-dark)] shadow-md shadow-[var(--coral)]/20'
       }`}
     >
-      {copied ? '✓' : 'Copy'}
+      {copied ? '✓ Copied' : 'Copy'}
     </button>
   );
 }

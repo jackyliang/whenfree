@@ -25,12 +25,12 @@ export default async function ManagePage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] noise-bg relative overflow-hidden">
+    <main className="min-h-dvh bg-[var(--cream)] noise-bg relative overflow-x-clip">
       {/* Decorative blobs */}
       <div className="blob blob-peach w-80 h-80 -top-20 -right-20 animate-pulse-soft" />
       <div className="blob blob-coral w-64 h-64 bottom-20 -left-20 animate-pulse-soft" style={{ animationDelay: '1s' }} />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 pt-8 pb-6 sm:py-12">
         <ManageContent eventId={eventId} eventTitle={event.title} />
       </div>
     </main>
