@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { getEventWithResponses, TimeSlot } from '@/lib/actions';
 import ShareSection from '@/components/ShareSection';
 import AvailabilityGrid from '@/components/AvailabilityGrid';
@@ -30,20 +30,24 @@ export default function ResultsContent({ eventId, shareUrl }: ResultsContentProp
   const [responses, setResponses] = useState<ResponseData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    const data = await getEventWithResponses(eventId);
-    if (data) {
-      setEvent(data.event);
-      setResponses(data.responses);
-    }
-    setIsLoading(false);
-  }, [eventId]);
-
   useEffect(() => {
+    let active = true;
+    const loadData = () =>
+      getEventWithResponses(eventId).then((data) => {
+        if (!active) return;
+        if (data) {
+          setEvent(data.event);
+          setResponses(data.responses);
+        }
+        setIsLoading(false);
+      });
     loadData();
     const interval = setInterval(loadData, 10000);
-    return () => clearInterval(interval);
-  }, [loadData]);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [eventId]);
 
   if (isLoading) {
     return (

@@ -1,25 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { formatShortDate } from '@/lib/slots';
 import Calendar from '@/components/Calendar';
 import { submitResponse, TimeSlot } from '@/lib/actions';
 
 // Confetti particle component
 function Confetti() {
-  const [particles, setParticles] = useState<Array<{
-    id: number;
-    x: number;
-    y: number;
-    color: string;
-    rotation: number;
-    scale: number;
-    delay: number;
-  }>>([]);
-
-  useEffect(() => {
+  const [particles] = useState(() => {
     const colors = ['#FF6B6B', '#FFEAA7', '#F9A826', '#A8D5BA', '#FF8A8A', '#FFC048'];
-    const newParticles = Array.from({ length: 40 }, (_, i) => ({
+    return Array.from({ length: 40 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -28,8 +18,7 @@ function Confetti() {
       scale: 0.5 + Math.random() * 0.5,
       delay: Math.random() * 0.5,
     }));
-    setParticles(newParticles);
-  }, []);
+  });
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
