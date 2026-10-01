@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { verifyAdminCode, getEventWithResponses, updateEvent, deleteResponse, TimeSlot } from '@/lib/actions';
 import CodeInput from '@/components/CodeInput';
 import AvailabilityGrid from '@/components/AvailabilityGrid';
@@ -403,7 +404,7 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
         <p>Built with &lt;3 by Jacky and Christine</p>
       </div>
 
-      {deleteConfirm && (
+      {deleteConfirm && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[var(--warm-brown)]/30 backdrop-blur-[2px]"
           onClick={() => !isDeleting && setDeleteConfirm(null)}
@@ -435,7 +436,7 @@ export default function ManageContent({ eventId, eventTitle }: ManageContentProp
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }
