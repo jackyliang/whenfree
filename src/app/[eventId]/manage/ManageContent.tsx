@@ -10,6 +10,7 @@ import { SLOT_EMOJI, SLOT_LABEL } from '@/lib/slots';
 interface ManageContentProps {
   eventId: string;
   eventTitle: string;
+  initialCode?: string;
 }
 
 interface ResponseData {
@@ -26,9 +27,9 @@ interface EventData {
   time_slots: TimeSlot[];
 }
 
-export default function ManageContent({ eventId, eventTitle }: ManageContentProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [adminCode, setAdminCode] = useState('');
+export default function ManageContent({ eventId, eventTitle, initialCode }: ManageContentProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!initialCode);
+  const [adminCode, setAdminCode] = useState(initialCode ?? '');
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   const [event, setEvent] = useState<EventData | null>(null);
