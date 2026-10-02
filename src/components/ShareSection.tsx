@@ -43,62 +43,52 @@ export default function ShareSection({ shareUrl, eventTitle, eventLocation }: Sh
   };
 
   return (
-    <div className="card-elevated p-6">
-      <label className="block text-sm font-semibold text-[var(--warm-brown)] mb-3">
-        🔗 Share this with friends
-      </label>
-
-      {/* Toggle for including message */}
-      <label className="flex items-center gap-3 mb-4 cursor-pointer">
-        <div className="relative">
-          <input
-            type="checkbox"
-            checked={includeMessage}
-            onChange={(e) => setIncludeMessage(e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-[var(--cream-dark)] rounded-full peer peer-checked:bg-[var(--coral)] transition-colors" />
-          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5 shadow-sm" />
+    <div className="card-elevated p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="text-base font-display font-semibold text-[var(--warm-brown)]">
+          Invite your friends
+        </h2>
+        <div className="flex p-1 rounded-full bg-[var(--cream-dark)] text-xs font-semibold" role="tablist">
+          {[
+            { on: true, label: 'Message' },
+            { on: false, label: 'Link' },
+          ].map((opt) => (
+            <button
+              key={opt.label}
+              type="button"
+              role="tab"
+              aria-selected={includeMessage === opt.on}
+              onClick={() => setIncludeMessage(opt.on)}
+              className={`px-3 py-1.5 rounded-full transition-colors ${
+                includeMessage === opt.on ? 'bg-white text-[var(--warm-brown)] shadow-sm' : 'text-[var(--warm-gray)]'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
-        <span className="text-sm text-[var(--warm-brown)]">Include friendly message</span>
-      </label>
+      </div>
 
-      {/* Preview area */}
       {includeMessage ? (
-        <div className="relative mb-3 overflow-hidden">
-          {/* Decorative background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--peach-light)] via-[var(--cream)] to-[var(--coral)]/10 rounded-2xl" />
-          <div className="absolute top-2 right-2 text-4xl opacity-20">✨</div>
-          <div className="absolute bottom-2 left-2 text-3xl opacity-20">🎉</div>
-
-          {/* Card content */}
-          <div className="relative p-5 rounded-2xl border-2 border-[var(--peach)] shadow-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">📨</span>
-              <span className="text-xs font-semibold text-[var(--coral)] uppercase tracking-wider">Invitation Preview</span>
-            </div>
-            <p className="text-sm text-[var(--warm-brown)] whitespace-pre-wrap leading-relaxed">{friendlyMessage}</p>
-          </div>
+        <div className="mb-3 p-4 rounded-2xl rounded-bl-md bg-[var(--peach-light)] border border-[var(--peach)]">
+          <p className="text-sm text-[var(--warm-brown)] whitespace-pre-wrap break-words leading-relaxed">{friendlyMessage}</p>
         </div>
       ) : (
-        <input
-          type="text"
-          readOnly
-          value={shareUrl}
-          className="w-full px-4 py-3 rounded-xl border-2 border-[var(--cream-dark)] bg-[var(--cream)] text-[var(--warm-brown)] font-mono text-sm mb-3"
-        />
+        <div className="mb-3 px-4 py-3 rounded-2xl bg-[var(--cream)] border-2 border-[var(--cream-dark)] text-[var(--warm-brown)] font-mono text-sm break-all">
+          {shareUrl}
+        </div>
       )}
 
-      {/* Copy button */}
       <button
+        type="button"
         onClick={handleCopy}
-        className={`w-full px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
+        className={`w-full px-5 py-3.5 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] ${
           copied
-            ? 'bg-[var(--sage)] text-white'
-            : 'bg-[var(--coral)] text-white hover:bg-[var(--coral-dark)] shadow-md shadow-[var(--coral)]/20'
+            ? 'bg-[var(--sage-dark)] text-white'
+            : 'bg-[var(--coral)] text-white shadow-md shadow-[var(--coral)]/20'
         }`}
       >
-        {copied ? '✓ Copied!' : includeMessage ? 'Copy Message' : 'Copy Link'}
+        {copied ? '✓ Copied!' : includeMessage ? 'Copy message' : 'Copy link'}
       </button>
     </div>
   );

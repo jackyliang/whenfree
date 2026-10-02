@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -22,6 +22,13 @@ export const metadata: Metadata = {
     description: "Find the perfect time to hang out with friends",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#FFFCF5",
 };
 
 export default function RootLayout({

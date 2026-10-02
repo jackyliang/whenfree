@@ -166,26 +166,25 @@ export default function Calendar({
             return (
               <button
                 key={day}
+                type="button"
                 onClick={() => selectable && onDateToggle(formatDate(year, month, day))}
                 disabled={!selectable}
+                aria-pressed={selected}
                 className={`
-                  aspect-square rounded-xl text-sm font-medium transition-all duration-200 relative
+                  aspect-square rounded-xl text-[15px] font-medium transition-colors duration-150 active:scale-95
                   ${
                     selected
-                      ? 'bg-[var(--coral)] text-white shadow-lg shadow-[var(--coral)]/30 scale-105 z-10'
+                      ? 'bg-[var(--coral)] text-white font-semibold shadow-md shadow-[var(--coral)]/30'
                       : selectable
                       ? selectableDates
-                        ? 'bg-[var(--peach-light)] text-[var(--warm-brown)] hover:bg-[var(--peach)] hover:scale-105 border-2 border-[var(--peach)]'
-                        : 'hover:bg-[var(--peach-light)] text-[var(--warm-brown)] hover:scale-105'
-                      : 'text-[var(--warm-gray-light)]/40 cursor-not-allowed'
+                        ? 'bg-[var(--peach-light)] text-[var(--warm-brown)] border-2 border-[var(--peach)] [@media(hover:hover)]:hover:bg-[var(--peach)]'
+                        : 'text-[var(--warm-brown)] [@media(hover:hover)]:hover:bg-[var(--peach-light)]'
+                      : 'text-[var(--warm-gray-light)]/35 cursor-not-allowed'
                   }
-                  ${today && !selected ? 'ring-2 ring-[var(--amber)] ring-offset-1' : ''}
+                  ${today && !selected ? 'ring-2 ring-inset ring-[var(--amber)]' : ''}
                 `}
               >
                 {day}
-                {selected && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[var(--amber)] rounded-full border-2 border-white" />
-                )}
               </button>
             );
           })}
@@ -197,7 +196,7 @@ export default function Calendar({
   // Guest view: Show all months with available dates
   if (monthsToShow && monthsToShow.length > 0) {
     return (
-      <div className="card-elevated p-5 sm:p-6">
+      <div className="card-elevated p-4 sm:p-6">
         <div className={`grid gap-6 ${monthsToShow.length > 1 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
           {monthsToShow.map(({ year, month, key }) => (
             <div key={key}>
@@ -207,24 +206,28 @@ export default function Calendar({
         </div>
 
         {/* Selection hint */}
-        <div className="text-center mt-5 pt-4 border-t border-[var(--cream-dark)]">
-          <p className="text-xs text-[var(--warm-gray)]">
-            <span className="inline-block w-3 h-3 bg-[var(--peach-light)] border border-[var(--peach)] rounded mr-1 align-middle" />
-            = available dates (tap to select)
-          </p>
-        </div>
+        <p className="text-center text-xs text-[var(--warm-gray)] mt-4">
+          <span className="inline-block w-3 h-3 bg-[var(--peach-light)] border border-[var(--peach)] rounded mr-1.5 align-middle" />
+          Tap every highlighted day you&apos;re free
+        </p>
       </div>
     );
   }
 
   // Host view: Single month with navigation
+  const now = new Date();
+  const isCurrentMonth =
+    currentMonth.getFullYear() === now.getFullYear() && currentMonth.getMonth() === now.getMonth();
+
   return (
-    <div className="card-elevated p-5 sm:p-6">
+    <div className="card-elevated p-4 sm:p-6">
       {/* Month navigation */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <button
+          type="button"
           onClick={goToPrevMonth}
-          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--cream-dark)] transition-colors"
+          disabled={isCurrentMonth}
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-[var(--cream-dark)] active:scale-95 transition disabled:opacity-30"
           aria-label="Previous month"
         >
           <svg
@@ -245,8 +248,9 @@ export default function Calendar({
           {getMonthName(currentMonth.getFullYear(), currentMonth.getMonth())}
         </h3>
         <button
+          type="button"
           onClick={goToNextMonth}
-          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--cream-dark)] transition-colors"
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-[var(--cream-dark)] active:scale-95 transition"
           aria-label="Next month"
         >
           <svg
@@ -267,9 +271,10 @@ export default function Calendar({
 
       {renderMonthGrid(currentMonth.getFullYear(), currentMonth.getMonth(), false)}
 
-      {/* Selection hint */}
       <p className="text-center text-xs text-[var(--warm-gray-light)] mt-4">
-        Tap dates to select
+        {selectedDates.length > 0
+          ? `${selectedDates.length} date${selectedDates.length !== 1 ? 's' : ''} picked`
+          : 'Tap the dates that could work'}
       </p>
     </div>
   );
